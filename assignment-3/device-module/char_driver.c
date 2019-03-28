@@ -43,6 +43,11 @@ int onebyte_release(struct inode *inode, struct file *filep)
 ssize_t onebyte_read(struct file *filep, char *buf, size_t
 		count, loff_t *f_pos)
 {
+	// check if we can read out of the device
+	if (*buf != 0) {
+		return 0;
+	}
+
 	copy_to_user(buf, onebyte_data, sizeof(char));
 	return 1;
 }
