@@ -56,6 +56,12 @@ ssize_t onebyte_write(struct file *filep, const char *buf,
 		size_t count, loff_t *f_pos)
 {
 	copy_from_user(onebyte_data, buf, sizeof(char));
+
+	// check if we need to stop writing
+	if (count > sizeof(char)) {
+		return -ENOSPC;
+	}
+
 	return 1;
 }
 
