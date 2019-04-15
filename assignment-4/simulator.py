@@ -114,10 +114,56 @@ def RR_scheduling(process_list: List[Process], time_quantum: int = 10) -> Tuple[
     return schedule, waiting_time / len(process_list)
 
 
+def SRTF_scheduling(process_list: List[Process]) -> Tuple[List[tuple], float]:
+    schedule = list()  # type: List[tuple]
+    completed = dict()  # type: Dict[Process, bool]
+    work_queue = deque([])
+    waiting_time = 0
+    done = 0
+    t = 0
 
-def SRTF_scheduling(process_list) -> Tuple[List[Tuple], float]:
-    return (["to be completed, scheduling process_list on SRTF, using process.burst_time to calculate the remaining time of the current process"],
-            0.0)
+    previous_process = None
+    while True:
+        if done == len(process_list):
+            break
+
+        receive_arrivals(completed, process_list, t, work_queue)
+
+        # sort by remaining time, then arrival time, then burst time and id
+        work_queue = sorted(work_queue, key=lambda p: (p.time_remaining, p.arrive_time, p.burst_time, p.id))
+        work_queue = deque(work_queue)
+        # print('t = %3s: %s' % (t, work_queue))
+
+        # get the highest priority process to work on
+        try:
+            current_process = work_queue.popleft()  # type: Process
+
+            # update waiting time
+            waiting_time += len(work_queue)
+        except IndexError:
+            # no work to do and no processes are arriving
+            t += 1
+            receive_arrivals(completed, process_list, t, work_queue)
+            continue
+
+        # check if pre-emption/context switch is needed
+        if current_process is not previous_process:
+            # record new schedule
+            schedule.append((t, current_process.id, current_process.time_remaining))
+
+        current_process.time_remaining -= 1
+
+        previous_process = current_process
+        t += 1
+
+        if current_process.time_remaining == 0:
+            done += 1
+            continue
+
+        # add current process back to queue if not done
+        work_queue.append(current_process)
+
+    return schedule, waiting_time / len(process_list)
 
 
 def SJF_scheduling(process_list, alpha) -> Tuple[List[Tuple], float]:
@@ -161,7 +207,7 @@ def main(input_file: str = 'input.txt'):
     write_output('RR.txt', rr_schedule, rr_avg_waiting_time)
 
     print("simulating SRTF ----")
-    srtf_schedule, srtf_avg_waiting_time = SRTF_scheduling(process_list)
+    srtf_schedule, srtf_avg_waiting_time = SRTF_scheduling(deepcopy(process_list))
     write_output('SRTF.txt', srtf_schedule, srtf_avg_waiting_time)
 
     print("simulating SJF ----")
