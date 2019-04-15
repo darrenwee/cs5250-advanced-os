@@ -17,6 +17,7 @@ AY 2018/19 Semester 2
 
 from typing import Tuple, List, Dict
 from collections import deque
+from copy import deepcopy
 
 
 class Process:
@@ -83,7 +84,7 @@ def RR_scheduling(process_list: List[Process], time_quantum: int = 10) -> Tuple[
             break
 
         # process everything in queue
-        print('\nt = %3s; queue = %s' % (t, work_queue))
+        # print('\nt = %3s; queue = %s' % (t, work_queue))
 
         try:
             current_process = work_queue.popleft()  # type: Process
@@ -94,7 +95,7 @@ def RR_scheduling(process_list: List[Process], time_quantum: int = 10) -> Tuple[
             t += 1
             receive_arrivals(completed, process_list, t, work_queue)
             continue
-        print('t = %3s: scheduling %s' % (t, current_process))
+        # print('t = %3s: scheduling %s' % (t, current_process))
         schedule.append((t, current_process.id, current_process.time_remaining))
 
         if current_process.time_remaining > time_quantum:
@@ -105,7 +106,7 @@ def RR_scheduling(process_list: List[Process], time_quantum: int = 10) -> Tuple[
             current_process.time_remaining = 0
             completed[current_process] = True
             done += 1
-            print('t = %3s: completed %s' % (t, current_process))
+            # print('t = %3s: completed %s' % (t, current_process))
         receive_arrivals(completed, process_list, t, work_queue)
 
         if not completed[current_process]:
@@ -152,11 +153,11 @@ def main(input_file: str = 'input.txt'):
         print(process)
 
     print("simulating FCFS ----")
-    fcfs_schedule, fcfs_avg_waiting_time = FCFS_scheduling(process_list)
+    fcfs_schedule, fcfs_avg_waiting_time = FCFS_scheduling(deepcopy(process_list))
     write_output('FCFS.txt', fcfs_schedule, fcfs_avg_waiting_time)
 
     print("simulating RR ----")
-    rr_schedule, rr_avg_waiting_time = RR_scheduling(process_list, time_quantum=2)
+    rr_schedule, rr_avg_waiting_time = RR_scheduling(deepcopy(process_list), time_quantum=2)
     write_output('RR.txt', rr_schedule, rr_avg_waiting_time)
 
     print("simulating SRTF ----")
