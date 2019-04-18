@@ -44,7 +44,7 @@ def FCFS_scheduling(process_list) -> Tuple[List[tuple], float]:
     for process in process_list:
         if current_time < process.arrive_time:
             current_time = process.arrive_time
-        schedule.append((current_time, process.id, process.time_remaining))
+        schedule.append((current_time, process.id))
         waiting_time = waiting_time + (current_time - process.arrive_time)
         current_time = current_time + process.burst_time
     average_waiting_time = waiting_time / float(len(process_list))
@@ -98,7 +98,7 @@ def RR_scheduling(process_list: List[Process], time_quantum: int = 10) -> Tuple[
             receive_arrivals(completed, process_list, t, work_queue)
             continue
         # print('t = %3s: scheduling %s' % (t, current_process))
-        schedule.append((t, current_process.id, current_process.time_remaining))
+        schedule.append((t, current_process.id))
 
         # update waiting time between end of last processing period and start of this processing period
         if current_process in last_processed:
@@ -161,7 +161,7 @@ def SRTF_scheduling(process_list: List[Process]) -> Tuple[List[tuple], float]:
         # check if pre-emption/context switch is needed
         if current_process is not previous_process:
             # record new schedule
-            schedule.append((t, current_process.id, current_process.time_remaining))
+            schedule.append((t, current_process.id))
 
         current_process.time_remaining -= 1
 
@@ -235,7 +235,7 @@ def SJF_scheduling(process_list: List[Process], alpha: float = 0.5, initial_gues
             continue
 
         # schedule shortest predicted job w/o preemption
-        schedule.append((t, current_process.id, current_process.time_remaining))
+        schedule.append((t, current_process.id))
 
         # compute waiting time for the newly scheduled process
         waiting_time += t - current_process.arrive_time
