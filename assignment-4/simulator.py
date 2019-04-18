@@ -15,7 +15,7 @@ A0147609X
 AY 2018/19 Semester 2
 """
 
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Set
 from collections import deque
 from copy import deepcopy
 
@@ -28,9 +28,12 @@ class Process:
         self.arrive_time = arrive_time
         self.burst_time = burst_time
         self.time_remaining = burst_time
+        self.predicted_burst = None
 
     def __repr__(self):
-        return '[id %d : arrival_time %d,  burst_time %d/%d]' % (self.id, self.arrive_time, self.time_remaining, self.burst_time)
+        if self.predicted_burst is None:
+            return '[id %d : arrival_time %d,  burst_time %d/%d]' % (self.id, self.arrive_time, self.time_remaining, self.burst_time)
+        return '[id %d : arrival_time %d,  burst_time %d/%d(%s)]' % (self.id, self.arrive_time, self.time_remaining, self.burst_time, self.predicted_burst)
 
 
 def FCFS_scheduling(process_list) -> Tuple[List[tuple], float]:
@@ -166,8 +169,75 @@ def SRTF_scheduling(process_list: List[Process]) -> Tuple[List[tuple], float]:
     return schedule, waiting_time / len(process_list)
 
 
-def SJF_scheduling(process_list, alpha) -> Tuple[List[Tuple], float]:
-    return (["to be completed, scheduling SJF without using information from process.burst_time"], 0.0)
+def SJF_scheduling(process_list: List[Process], alpha: float = 0.5, initial_guess: int = 5) -> Tuple[List[tuple], float]:
+    schedule = list()  # type: List[tuple]
+    completed = dict()  # type: Dict[Process, bool]
+    work_queue = deque([])
+    waiting_time = 0
+    done = 0
+    t = 0
+
+    # burst time history on a per-pid basis
+    burst_history = dict()  # type: Dict[int, List[int]]
+    prediction_history = dict()  # type: Dict[int, List[float]]
+
+    # populate initial guesses for burst
+    for p in process_list:
+        prediction_history[p.id] = [initial_guess]
+        # affix burst history to 0 since the process has never run before
+        burst_history[p.id] = list()
+
+    encountered_pids = set()  # type: Set[int]
+    while True:
+        if done == len(process_list):
+            break
+
+        receive_arrivals(completed, process_list, t, work_queue)
+
+        # compute burst predictions for all processes in queue
+        for p in work_queue:
+            # populate initial predictions
+            if p.id not in encountered_pids:
+                p.predicted_burst = initial_guess
+                encountered_pids.add(p.id)
+
+            # compute predictions for subsequent attempts thereafter
+            if p.predicted_burst is None:
+                prediction = alpha * burst_history[p.id][-1] + (1 - alpha) * prediction_history[p.id][-1]
+                # print('pred history  = %s' % prediction_history[p.id])
+                # print('burst history = %s' % burst_history[p.id])
+                # print('predicted burst is %s' % prediction)
+                prediction_history[p.id].append(prediction)
+                p.predicted_burst = prediction
+
+        # sort by predicted burst time, then arrival time, then pid
+        work_queue = sorted(work_queue, key=lambda proc: (proc.predicted_burst, proc.arrive_time, proc.id))
+        work_queue = deque(work_queue)
+        print('t = %3s: %s' % (t, work_queue))
+
+        # get the highest priority process to work on
+        try:
+            current_process = work_queue.popleft()  # type: Process
+            print(current_process)
+        except IndexError:
+            # no work to do and no processes are arriving
+            t += 1
+            receive_arrivals(completed, process_list, t, work_queue)
+            continue
+
+        # schedule shortest predicted job w/o preemption
+        schedule.append((t, current_process.id, current_process.time_remaining))
+
+        # compute waiting time for the newly scheduled process
+        waiting_time += t - current_process.arrive_time
+
+        # advance scheduler timestamp
+        t += current_process.burst_time
+        burst_history[current_process.id].append(current_process.burst_time)
+
+        done += 1
+
+    return schedule, waiting_time / len(process_list)
 
 
 def read_input(filename: str) -> List[Process]:
