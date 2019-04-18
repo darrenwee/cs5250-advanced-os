@@ -74,6 +74,7 @@ def receive_arrivals(is_completed, processes, current_time, queue):
 def RR_scheduling(process_list: List[Process], time_quantum: int = 10) -> Tuple[List[tuple], float]:
     schedule = list()  # type: List[tuple]
     completed = dict()  # type: Dict[Process, bool]
+    last_processed = dict()  # type: Dict[Process, int]
     waiting_time = 0
 
     done = 0
@@ -91,8 +92,6 @@ def RR_scheduling(process_list: List[Process], time_quantum: int = 10) -> Tuple[
 
         try:
             current_process = work_queue.popleft()  # type: Process
-
-            waiting_time += len(work_queue)
         except IndexError:
             # no work to do and no processes are arriving
             t += 1
@@ -100,6 +99,12 @@ def RR_scheduling(process_list: List[Process], time_quantum: int = 10) -> Tuple[
             continue
         # print('t = %3s: scheduling %s' % (t, current_process))
         schedule.append((t, current_process.id, current_process.time_remaining))
+
+        # update waiting time between end of last processing period and start of this processing period
+        if current_process in last_processed:
+            waiting_time += t - last_processed[current_process]
+        else:
+            waiting_time += t - current_process.arrive_time
 
         if current_process.time_remaining > time_quantum:
             t += time_quantum
@@ -110,6 +115,10 @@ def RR_scheduling(process_list: List[Process], time_quantum: int = 10) -> Tuple[
             completed[current_process] = True
             done += 1
             # print('t = %3s: completed %s' % (t, current_process))
+
+        # track timestamp of last processing (end of time slice)
+        last_processed[current_process] = t
+
         receive_arrivals(completed, process_list, t, work_queue)
 
         if not completed[current_process]:
