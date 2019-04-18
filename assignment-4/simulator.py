@@ -222,12 +222,12 @@ def SJF_scheduling(process_list: List[Process], alpha: float = 0.5, initial_gues
         # sort by predicted burst time, then arrival time, then pid
         work_queue = sorted(work_queue, key=lambda proc: (proc.predicted_burst, proc.arrive_time, proc.id))
         work_queue = deque(work_queue)
-        print('t = %3s: %s' % (t, work_queue))
+        # print('t = %3s: %s' % (t, work_queue))
 
         # get the highest priority process to work on
         try:
             current_process = work_queue.popleft()  # type: Process
-            print(current_process)
+            # print(current_process)
         except IndexError:
             # no work to do and no processes are arriving
             t += 1
