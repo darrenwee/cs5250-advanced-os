@@ -83,6 +83,7 @@ def RR_scheduling(process_list: List[Process], time_quantum: int = 10) -> Tuple[
     t = first.arrive_time
     completed[first] = False
 
+    prev_pid = None
     while True:
         if done == len(process_list):
             break
@@ -98,7 +99,8 @@ def RR_scheduling(process_list: List[Process], time_quantum: int = 10) -> Tuple[
             receive_arrivals(completed, process_list, t, work_queue)
             continue
         # print('t = %3s: scheduling %s' % (t, current_process))
-        schedule.append((t, current_process.id))
+        if prev_pid != current_process.id:
+            schedule.append((t, current_process.id))
 
         # update waiting time between end of last processing period and start of this processing period
         if current_process in last_processed:
@@ -121,6 +123,7 @@ def RR_scheduling(process_list: List[Process], time_quantum: int = 10) -> Tuple[
 
         receive_arrivals(completed, process_list, t, work_queue)
 
+        prev_pid = current_process.id
         if not completed[current_process]:
             work_queue.append(current_process)
     return schedule, waiting_time / len(process_list)
