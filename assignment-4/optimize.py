@@ -4,7 +4,7 @@ from numpy import arange
 
 def optimize_round_robin(processes: List[Process], lower: int = 1, upper: int = 10, step_size: int = 1):
     results = dict()
-    with open('rr-op.txt', 'w') as f:
+    with open('optimization/rr-op.txt', 'w') as f:
         # write header
         f.write('quantum avg.wait\n')
 
@@ -19,7 +19,7 @@ def optimize_round_robin(processes: List[Process], lower: int = 1, upper: int = 
 
 def optimize_sjf(processes: List[Process], lower: float = 0.0, upper: float = 1.0, step_size: float = 0.05):
     results = dict()
-    with open('sjf-op.txt', 'w') as f:
+    with open('optimization/sjf-op.txt', 'w') as f:
         # write header
         f.write('alpha avg.wait\n')
 
@@ -44,9 +44,9 @@ if __name__ == '__main__':
     print("simulating RR ----")
     Q = optimize_round_robin(process_list, lower=1, upper=15, step_size=1)
     rr_sched, rr_wait = RR_scheduling(process_list, time_quantum=Q)
-    write_output('rr-optimal-%s.txt' % Q, rr_sched, rr_wait)
+    write_output('optimization/rr-optimal-%s.txt' % Q, rr_sched, rr_wait)
 
     print("simulating SJF ----")
     alpha = optimize_sjf(process_list, lower=0.0, upper=1.0, step_size=0.02)
     sjf_sched, sjf_wait = SJF_scheduling(process_list, alpha=alpha)
-    write_output('sjf-optimal-%s.txt' % alpha, sjf_sched, sjf_wait)
+    write_output('optimization/sjf-optimal-%s.txt' % alpha, sjf_sched, sjf_wait)
