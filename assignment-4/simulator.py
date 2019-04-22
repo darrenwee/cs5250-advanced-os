@@ -197,7 +197,7 @@ def SJF_scheduling(process_list: List[Process], alpha: float = 0.5, initial_gues
     for p in process_list:
         prediction_history[p.id] = [initial_guess]
         # affix burst history to 0 since the process has never run before
-        burst_history[p.id] = list()
+        burst_history[p.id] = [0]
 
     encountered_pids = set()  # type: Set[int]
     while True:
@@ -283,18 +283,22 @@ def main(input_file: str = 'input.txt'):
     print("simulating FCFS ----")
     fcfs_schedule, fcfs_avg_waiting_time = FCFS_scheduling(deepcopy(process_list))
     write_output('FCFS.txt', fcfs_schedule, fcfs_avg_waiting_time)
+    print('FCFS waiting time = %.5f' % fcfs_avg_waiting_time)
 
     print("simulating RR ----")
     rr_schedule, rr_avg_waiting_time = RR_scheduling(deepcopy(process_list), time_quantum=2)
     write_output('RR.txt', rr_schedule, rr_avg_waiting_time)
+    print('RR waiting time = %.5f' % rr_avg_waiting_time)
 
     print("simulating SRTF ----")
     srtf_schedule, srtf_avg_waiting_time = SRTF_scheduling(deepcopy(process_list))
     write_output('SRTF.txt', srtf_schedule, srtf_avg_waiting_time)
+    print('SRTF waiting time = %.5f' % srtf_avg_waiting_time)
 
     print("simulating SJF ----")
     sjf_schedule, sjf_avg_waiting_time = SJF_scheduling(process_list, alpha=0.5)
     write_output('SJF.txt', sjf_schedule, sjf_avg_waiting_time)
+    print('SJF waiting time = %.5f' % sjf_avg_waiting_time)
 
 
 if __name__ == '__main__':
